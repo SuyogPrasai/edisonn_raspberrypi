@@ -1,6 +1,5 @@
 import subprocess
 import re
-import sys
 from typing import Optional, Tuple
 
 class DeviceLocationReader:
@@ -26,6 +25,8 @@ class DeviceLocationReader:
         self.direction: Optional[int] = None
         self.general_direction: Optional[str] = None
 
+        self.reader_running = False
+
     def read_logcat(self) -> None:
         """
         Reads and processes ADB logcat output to extract device location and direction data.
@@ -34,7 +35,7 @@ class DeviceLocationReader:
         using the regex pattern, and updates the class attributes accordingly.
         """
         try:
-            print("Starting ADB logcat...")  # Debugging message
+            self.reader_running = True
 
             # Start ADB logcat process
             process = subprocess.Popen(
@@ -51,14 +52,15 @@ class DeviceLocationReader:
             # Read and process the output line by line
             for line in process.stdout:
                 line = line.strip()
-
                 self._update_attributes_from_line(line)
 
         except KeyboardInterrupt:
+            self.reader_running = False
             print("\nLogcat reading interrupted by user.")
             process.terminate()
             raise RuntimeError("Logcat reading interrupted by user.")
         except Exception as e:
+            self.reader_running = False
             print(f"Error: {e}")
 
     def _update_attributes_from_line(self, line: str) -> None:
@@ -73,8 +75,6 @@ class DeviceLocationReader:
             self.location = (float(latitude), float(longitude))
             self.direction = int(direction)
             self.general_direction = general_direction.strip()
-        else:
-            print("No match found in log.")  # Debugging message
 
 
 def main() -> None:
