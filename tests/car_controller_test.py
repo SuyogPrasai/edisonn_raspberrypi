@@ -154,7 +154,6 @@ class TestEdisonCar(unittest.TestCase):
         self.assertEqual(self.car.car.car_states["current_direction"], 90)
 
     def test_location(self):
-        self.car._get_location
-        ()
+        self.car._get_location()
 if __name__ == "__main__":
     unittest.main()

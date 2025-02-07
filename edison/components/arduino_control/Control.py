@@ -1,14 +1,12 @@
 import os
 import time
 import threading
-
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 from dotenv import load_dotenv
 from edison.models.Car import Car
 from edison.helpers.DataPacket import DataPacketBuilder
 from edison.helpers.SendPacket import SerialPacketSender
 from edison.components.device_location.DeviceLocation import DeviceLocationReader
-
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -56,7 +54,7 @@ class CarController:
     def update_car_state(self) -> None:
         """Update the car's state and send the corresponding data packet."""
         with self._lock:
-            current_state = self.car.car_states
+            current_state = self.car.car_states.copy()
 
         try:
             packet = self.builder.construct_data_packet(
@@ -81,9 +79,20 @@ class CarController:
             self.car.car_states['current_speed'] = 0
             self.car.car_states['current_direction'] = self.car.FRONT_ANGLE
 
-    def _get_location(self):
+    def _get_location(self) -> Tuple[Any, Any, Any]:
+        """Get the current location, direction, and general direction of the car."""
         with self._lock:
             return (self.device_location.location, self.device_location.direction, self.device_location.general_direction)
+
+    def get_current_state(self) -> Dict[str, Any]:
+        """Get the current state of the car."""
+        with self._lock:
+            return self.car.car_states.copy()
+
+    def is_moving(self) -> bool:
+        """Check if the car is currently moving."""
+        with self._lock:
+            return self.car.car_states['current_speed'] > 0
 
 class EdisonCar(CarController):
     """Enhanced car controller with movement and speed management capabilities."""
