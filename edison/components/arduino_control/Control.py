@@ -34,5 +34,4 @@ class CarControlelr:
 
 
     def update_car_state(self) -> int:
-        current_state = self.car.control_states
-        
+        current_state = self.car.control_state
