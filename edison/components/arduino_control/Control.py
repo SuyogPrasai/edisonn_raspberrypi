@@ -1,8 +1,10 @@
 import os
 import time
 import threading
+
 from typing import Dict, Any, Tuple
 from dotenv import load_dotenv
+
 from edison.models.Car import Car
 from edison.helpers.DataPacket import DataPacketBuilder
 from edison.helpers.SendPacket import SerialPacketSender
@@ -201,6 +203,7 @@ class EdisonCar(CarController):
 
     def _acceleration_loop(self) -> None:
         """Continuous acceleration loop with delay."""
+        self.stop_gradual_deceleration()
         while self.accelerating:
             with self._lock:
                 current_speed = self.car.car_states['current_speed']
@@ -212,6 +215,7 @@ class EdisonCar(CarController):
 
     def _deceleration_loop(self) -> None:
         """Continuous deceleration loop with delay."""
+        self.stop_gradual_acceleration()
         while self.decelerating:
             with self._lock:
                 current_speed = self.car.car_states['current_speed']
