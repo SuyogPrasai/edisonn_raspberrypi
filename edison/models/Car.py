@@ -1,13 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict
 
 @dataclass
 class Car:
-    car_states: Dict[str, bool] = {
-        "current_speed": int,
-        "current_direction": int
-    }
-
     MIN_SPEED: int
     MAX_SPEED: int
 
@@ -20,3 +15,8 @@ class Car:
     LEFT_ANGLE: int
     RIGHT_ANGLE: int
     FRONT_ANGLE: int
+
+    car_states: Dict[str, int] = field(default_factory=lambda: {
+        "current_speed": 0,
+        "current_direction": 0
+    })
