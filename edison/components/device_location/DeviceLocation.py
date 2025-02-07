@@ -3,7 +3,6 @@ import re
 import sys
 from typing import Optional, Tuple
 
-
 class DeviceLocationReader:
     """
     A class to read and parse device location and direction data from ADB logcat output.
@@ -52,14 +51,13 @@ class DeviceLocationReader:
             # Read and process the output line by line
             for line in process.stdout:
                 line = line.strip()
-                print(f"RAW LOG: {line}")  # Print raw log for debugging
 
                 self._update_attributes_from_line(line)
 
         except KeyboardInterrupt:
             print("\nLogcat reading interrupted by user.")
             process.terminate()
-            sys.exit(0)
+            raise RuntimeError("Logcat reading interrupted by user.")
         except Exception as e:
             print(f"Error: {e}")
 
@@ -75,20 +73,8 @@ class DeviceLocationReader:
             self.location = (float(latitude), float(longitude))
             self.direction = int(direction)
             self.general_direction = general_direction.strip()
-            print(
-                f"Updated Attributes: Location={self.location}, "
-                f"Direction={self.direction}, General Direction={self.general_direction}"
-            )
         else:
             print("No match found in log.")  # Debugging message
-
-    def print_attributes(self) -> None:
-        """
-        Prints the current device location, direction, and general direction.
-        """
-        print(f"Direction: {self.direction}")
-        print(f"General Direction: {self.general_direction}")
-        print(f"Location: {self.location}")
 
 
 def main() -> None:

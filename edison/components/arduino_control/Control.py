@@ -1,11 +1,14 @@
 import os
 import time
 import threading
+
 from typing import Dict, Any
 from dotenv import load_dotenv
 from edison.models.Car import Car
 from edison.helpers.DataPacket import DataPacketBuilder
 from edison.helpers.SendPacket import SerialPacketSender
+from edison.components.device_location.DeviceLocation import DeviceLocationReader
+
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -17,6 +20,11 @@ class CarController:
         self.builder = DataPacketBuilder()
         self.sender = self._initialize_serial_sender()
         self._lock = threading.Lock()
+        self.device_location = DeviceLocationReader()
+        
+        # Start the logcat reader in a separate thread
+        self.location_thread = threading.Thread(target=self.device_location.read_logcat, daemon=True)
+        self.location_thread.start()  # Run in the background
 
     def _initialize_car(self) -> Car:
         """Initialize and return a Car instance with configuration from environment variables."""
@@ -72,6 +80,10 @@ class CarController:
         with self._lock:
             self.car.car_states['current_speed'] = 0
             self.car.car_states['current_direction'] = self.car.FRONT_ANGLE
+
+    def _get_location(self):
+        with self._lock:
+            return (self.device_location.location, self.device_location.direction, self.device_location.general_direction)
 
 class EdisonCar(CarController):
     """Enhanced car controller with movement and speed management capabilities."""
