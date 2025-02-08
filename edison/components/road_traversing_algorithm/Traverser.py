@@ -8,8 +8,8 @@ class Traverser:
     def __init__(self, car: EdisonCar, point_navigator: PointNavigator):
         self.car = car
         self.point_navigator = point_navigator
-        self.next_point = self.point_navigator.routes[-1]
-        print(self.next_point)
+        self.counter = 0
+        self.next_point = self.point_navigator.routes[self.counter]
 
     def get_coordinates(self):
         coordinates, _, _ = self.car._get_location()
@@ -96,4 +96,12 @@ class Traverser:
                 self.car.turn_right()
                 self.car.set_speed(20)
             else: 
+                break
+
+    def move_to_point(self):
+        self.car.set_speed(40)
+        while True:
+            if self.get_magnitude < 5:
+                self.counter += 1
+                self.next_point = self.point_navigator.routes[self.counter]
                 break
