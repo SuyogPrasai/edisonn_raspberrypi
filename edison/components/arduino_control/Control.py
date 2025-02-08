@@ -9,6 +9,7 @@ from edison.models.Car import Car
 from edison.helpers.DataPacket import DataPacketBuilder
 from edison.helpers.SendPacket import SerialPacketSender
 from edison.components.device_location.DeviceLocation import DeviceLocationReader
+from edison._lib.get_video import GetWebcam
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -22,6 +23,9 @@ class CarController:
         self.sender = self._initialize_serial_sender()
         self._lock = threading.Lock()
         self.device_location = DeviceLocationReader()
+
+        self.web_cam = GetWebcam()
+        self.web_cam.get_webcam()
         
         # Start the logcat reader in a separate thread
         self.location_thread = threading.Thread(target=self.device_location.read_logcat, daemon=True)
