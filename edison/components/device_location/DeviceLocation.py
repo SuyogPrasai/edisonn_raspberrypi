@@ -46,9 +46,6 @@ class DeviceLocationReader:
                 bufsize=1,
                 encoding="utf-8",
             )
-
-            print("Waiting for logcat output...")  # Debugging message
-
             # Read and process the output line by line
             for line in process.stdout:
                 line = line.strip()

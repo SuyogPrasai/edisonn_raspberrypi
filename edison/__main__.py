@@ -12,5 +12,3 @@ import threading
 car = EdisonCar()
 
 p = PointNavigator(car)
-
-print(p.generate_route_data())

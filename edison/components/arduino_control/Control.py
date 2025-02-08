@@ -25,6 +25,11 @@ class CarController:
         # Start the logcat reader in a separate thread
         self.location_thread = threading.Thread(target=self.device_location.read_logcat, daemon=True)
         self.location_thread.start()  # Run in the background
+        while True:
+            if self.device_location.location != (None, None): 
+                break
+            print("Make sure to connect usb, Waiting for the signal..")
+            time.sleep(1)
 
     def _initialize_car(self) -> Car:
         """Initialize and return a Car instance with configuration from environment variables."""

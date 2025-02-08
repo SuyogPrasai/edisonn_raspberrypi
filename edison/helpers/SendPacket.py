@@ -15,6 +15,12 @@ class SerialPacketSender:
         self.baud_rate = baud_rate
         self.timeout = timeout
         self.ser = None
+
+        try: 
+            self.open_connection()
+        except Exception as e:
+            print(f"Failed communicating with the arduino, Exitting..., {e}")
+            exit(1)
         
     def open_connection(self):
         """Opens the serial connection."""

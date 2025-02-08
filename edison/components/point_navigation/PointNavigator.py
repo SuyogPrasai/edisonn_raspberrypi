@@ -15,6 +15,7 @@ class PointNavigator:
             car (EdisonCar): An instance of the EdisonCar class for location and control.
         """
         self.car = car
+        self.next_point = self.get_route_coordinates()[0]
 
     def current_location(self) -> Tuple[Tuple[float, float], float, str]:
         """
@@ -52,7 +53,7 @@ class PointNavigator:
             coordinates, _, _ = self.current_location()
             if coordinates and coordinates[0] is not None and coordinates[1] is not None:
                 break
-            print("Waiting for GPS signal...")
+            print("No gps signal, waiting for GPS signal...")
             time.sleep(1)
 
         src_lat, src_lon = coordinates
