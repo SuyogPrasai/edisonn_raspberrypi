@@ -50,12 +50,6 @@ class GetWebcam:
             # 2. Capture existing devices before modprobe
             before_devices = self._get_video_devices()
 
-            # 3. Load kernel module
-            subprocess.run(
-                ["sudo", "modprobe", "v4l2loopback"],
-                check=True
-            )
-
             # 4. Detect new loopback device
             time.sleep(0.5)  # Allow kernel to create devices
             after_devices = self._get_video_devices()

@@ -8,6 +8,9 @@ from edison.components.point_navigation.PointNavigator import PointNavigator
 from edison.components.device_location.DeviceLocation import DeviceLocationReader
 from edison.components.road_traversing_algorithm.Traverser import Traverser
 
+
+from edison._lib.get_video import GetWebcam
+
 car = EdisonCar()
 p = PointNavigator(car)
 
