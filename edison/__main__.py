@@ -9,12 +9,3 @@ from edison.components.device_location.DeviceLocation import DeviceLocationReade
 from edison.components.road_traversing_algorithm.Traverser import Traverser
 
 car = EdisonCar()
-p = PointNavigator(car)
-
-t = Traverser(
-    car,
-    point_navigator=p
-)
-
-print(t.get_magnitude())
-print(t.turn_angle())
