@@ -45,7 +45,7 @@ class WebcamManager:
     def _get_video_devices(self) -> Set[str]:
         """Get set of available video devices."""
         video_dir = "/sys/class/video4linux"
-        return set(os.listdir(video_dir)) if os.path.exists(video_dir else set()
+        return set(os.listdir(video_dir)) if os.path.exists(video_dir) else set()
 
     def _detect_loopback_device(self, before: Set[str], after: Set[str]) -> Optional[str]:
         """Identify new v4l2loopback device."""
