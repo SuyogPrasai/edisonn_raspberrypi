@@ -15,7 +15,8 @@ class PointNavigator:
             car (EdisonCar): An instance of the EdisonCar class for location and control.
         """
         self.car = car
-        self.next_point = self.get_route_coordinates()[0]
+        self.routes = self.get_route_coordinates()
+        self.next_point = self.routes[0]
 
     def current_location(self) -> Tuple[Tuple[float, float], float, str]:
         """
@@ -57,6 +58,7 @@ class PointNavigator:
             time.sleep(1)
 
         src_lat, src_lon = coordinates
+        
         dest_lat, dest_lon = self.prompt_final_destination()
 
         try:

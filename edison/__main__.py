@@ -6,9 +6,15 @@ from edison.components.arduino_control.Control import EdisonCar  # Replace 'your
 from edison._lib.path_generator import get_route,save_route_as_geojson
 from edison.components.point_navigation.PointNavigator import PointNavigator
 from edison.components.device_location.DeviceLocation import DeviceLocationReader
-
-import threading
+from edison.components.road_traversing_algorithm.Traverser import Traverser
 
 car = EdisonCar()
-car.turn_right()
 p = PointNavigator(car)
+
+t = Traverser(
+    car,
+    point_navigator=p
+)
+
+print(t.get_magnitude())
+print(t.get_angle())
