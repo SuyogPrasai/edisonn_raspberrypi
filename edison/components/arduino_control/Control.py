@@ -16,6 +16,7 @@ class CarController:
     """Base controller class for managing car state and communication."""
     
     def __init__(self):
+        load_dotenv()
         self.car = self._initialize_car()
         self.builder = DataPacketBuilder()
         self.sender = self._initialize_serial_sender()
@@ -40,8 +41,8 @@ class CarController:
 
         return Car(
             car_states=car_states,
-            MIN_SPEED=int(os.getenv("MIN_SPEED", 100)),
-            MAX_SPEED=int(os.getenv("MAX_SPEED", 255)),
+            MIN_SPEED=int(os.getenv("CAR_MIN_SPEED", 1)),
+            MAX_SPEED=int(os.getenv("CAR_MAX_SPEED", 200)),
             ACCELERATION_DELAY=float(os.getenv("ACCELERATION_DELAY", 0.1)),
             DECELERATION_DELAY=float(os.getenv("DECELERATION_DELAY", 0.1)),
             ACCELERATION_INCREMENT=int(os.getenv("ACCELERATION_INCREMENT", 5)),
@@ -53,8 +54,9 @@ class CarController:
 
     def _initialize_serial_sender(self) -> SerialPacketSender:
         """Initialize and return a SerialPacketSender instance with configuration from environment variables."""
+        print(os.getenv("ARDUINO_SERIAL_PORT", "COM12"))
         return SerialPacketSender(
-            port=os.getenv("SERIAL_PORT", "COM11"),
+            port=os.getenv("ARDUINO_SERIAL_PORT", "COM12"),
             baud_rate=int(os.getenv("BAUD_RATE", 9600))
         )
 
@@ -68,6 +70,8 @@ class CarController:
                 direction=current_state['current_direction'],
                 speed=current_state['current_speed']
             )
+            print(packet)
+            print(f"Constructed packet: {packet.hex(':')}")
             self._send_packet(packet)
 
         except (EnvironmentError, ValueError) as e:

@@ -10,5 +10,5 @@ from edison.components.device_location.DeviceLocation import DeviceLocationReade
 import threading
 
 car = EdisonCar()
-
+car.turn_right()
 p = PointNavigator(car)

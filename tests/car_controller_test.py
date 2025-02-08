@@ -22,7 +22,7 @@ class TestEdisonCar(unittest.TestCase):
             "DECELERATION_INCREMENT": "5",
             "LEFT_ANGLE": "120",
             "RIGHT_ANGLE": "60",
-            "SERIAL_PORT": "COM11",
+            "SERIAL_PORT": "COM12",
             "BAUD_RATE": "9600",
         }
         self.patcher = patch.dict("os.environ", self.env_vars)
