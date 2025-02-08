@@ -50,14 +50,6 @@ class GetWebcam:
             # 2. Capture existing devices before modprobe
             before_devices = self._get_video_devices()
 
-            # 4. Detect new loopback device
-            time.sleep(0.5)  # Allow kernel to create devices
-            after_devices = self._get_video_devices()
-            self.loopback_device = self._find_loopback_device(before_devices, after_devices)
-
-            if not self.loopback_device:
-                raise RuntimeError("Failed to detect v4l2loopback device")
-
             print(f"Virtual webcam created at: {self.loopback_device}")
             self._setup_complete.set()  # Signal completion
 
