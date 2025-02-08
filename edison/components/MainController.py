@@ -1,6 +1,6 @@
 from edison.components.road_traverser import Traverser
 from edison.components.vision_processor.vision_processor import VisionProcessor
-from edison.components.obstacle_avoidance import ObstacleAvoidance
+from edison.components.obstacle_avoidance.ObstacleAvoider import ObstacleAvoidance
 from edison.components.control.Control import EdisonCar
 from edison._lib.point_navigator import PointNavigator
 
