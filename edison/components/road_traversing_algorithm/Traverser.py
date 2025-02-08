@@ -8,7 +8,7 @@ class Traverser:
     def __init__(self, car: EdisonCar, point_navigator: PointNavigator):
         self.car = car
         self.point_navigator = point_navigator
-        self.next_point = self.point_navigator.routes[0]
+        self.next_point = self.point_navigator.routes[-1]
         print(self.next_point)
 
     def get_coordinates(self):
@@ -31,8 +31,6 @@ class Traverser:
         # Unpack coordinates
         dest_lon, dest_lat = self.next_point
         start_lat, start_lon = self.get_coordinates()
-
-        print(dest_lat, dest_lon, start_lat, start_lon )
 
         # Convert latitude and longitude from degrees to radians
         start_lat_rad = math.radians(start_lat)
@@ -80,3 +78,22 @@ class Traverser:
 
         return angle
     
+    def turn_angle(self):
+        f_angle = self.get_angle()
+        c_angle = self.get_direction()
+
+        return ( f_angle - c_angle )
+
+    def set_direction_next_point(self):
+        angle = self.turn_angle()
+        while True:
+            if self.get_direction() == self.get_angle():
+                break
+            if angle < 0:
+                self.car.turn_left()
+                self.car.set_speed(20)
+            elif angle > 0:
+                self.car.turn_right()
+                self.car.set_speed(20)
+            else: 
+                break

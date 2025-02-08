@@ -17,4 +17,4 @@ t = Traverser(
 )
 
 print(t.get_magnitude())
-print(t.get_angle())
+print(t.turn_angle())
