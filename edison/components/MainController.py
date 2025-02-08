@@ -1,13 +1,15 @@
-from edison.components.road_traversing_algorithm import Traverser
+from edison.components.road_traverser import Traverser
 from edison.components.vision_processor import VisionProcessor
 from edison.components.obstacle_avoidance import ObstacleAvoidance
-from edison.components.arduino_control.Control import EdisonCar
+from edison.components.control.Control import EdisonCar
+from edison._lib.point_navigator import PointNavigator
 
 class MainController:
     def __init__(self):
         self.car = EdisonCar()
         self.vision = VisionProcessor()
         self.obstacle_avoid = ObstacleAvoidance()
+        self.point_navigator = PointNavigator(self.car)
         self.traverser = Traverser(self.car, self.point_navigator)
         
     def run_loop(self):
