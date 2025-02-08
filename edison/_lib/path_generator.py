@@ -2,7 +2,6 @@ import requests
 import json
 from typing import Dict, Any, Tuple
 
-
 def validate_coordinate(coord: float, coord_type: str):
     """
     Validates latitude and longitude values.

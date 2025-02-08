@@ -16,8 +16,6 @@ class GetWebcam:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
-    
-
         except Exception as e:
             print(f"Error: {str(e)}")
             return None
