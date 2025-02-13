@@ -1,8 +1,8 @@
 from serial import Serial
 from typing import ByteString, Optional
-from edison.helpers.DataPacket import DataPacketBuilder
+from edison.helpers.data_communication import DataPacketBuilder
 
-class SerialPacketSender:
+class PacketCommuncation:
     def __init__(self, port: str, baud_rate: int = 9600, timeout: Optional[float] = 1.0):
         """
         Initializes the SerialPacketSender with a serial port and baud rate.
@@ -14,7 +14,7 @@ class SerialPacketSender:
         self.serial_port = port
         self.baud_rate = baud_rate
         self.timeout = timeout
-        self.ser = None
+        self.ser: Serial = None
 
         try: 
             self.open_connection()
@@ -38,7 +38,29 @@ class SerialPacketSender:
             raise RuntimeError("Serial connection is not open. Call open_connection() first.")
         
         self.ser.write(data_packet)
-    
+
+    def recieve_packet(self) -> str:
+        # must initialize as a separate process to completely for it to work maybe run it in a different thread
+        if not self.ser or not self.ser.is_open:
+            raise RuntimeError("Serial port is not established, Error recieving the packegt")   
+
+        try:
+            data = self.ser.readline()
+            return data if data else None
+        except Exception as e:
+            print(f"Error recieving the packet")
+
+
+    def init_recieving_packet_process(self):
+        while True:
+            try:
+                data = self.recieve_packet()
+                if data is not None:
+                    print(f"[+] Arduino: {data}")
+            except Exception as e:
+                raise RuntimeError(f"Error initializing the packet recieving process: {e}")
+                break
+
     def __enter__(self):
         """Allows usage of the class in a context manager."""
         self.open_connection()

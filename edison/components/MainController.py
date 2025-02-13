@@ -3,13 +3,14 @@ from edison.components.vision_processor.vision_processor import VisionProcessor
 from edison.components.obstacle_avoidance.ObstacleAvoider import ObstacleAvoidance
 from edison.components.control.Control import EdisonCar
 from edison._lib.point_navigator import PointNavigator
+from edison.components.streaming_server.streamer import StreamManager
 
 class MainController:
     def __init__(self):
         self.car = EdisonCar()
+        self.point_navigator = PointNavigator(self.car)
         self.vision = VisionProcessor()
         self.obstacle_avoid = ObstacleAvoidance()
-        self.point_navigator = PointNavigator(self.car)
         self.traverser = Traverser(self.car, self.point_navigator)
         
     def run_loop(self):

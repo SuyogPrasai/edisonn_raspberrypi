@@ -6,8 +6,8 @@ from typing import Dict, Any, Tuple
 from dotenv import load_dotenv
 
 from edison.models.Car import Car
-from edison.helpers.DataPacket import DataPacketBuilder
-from edison.helpers.SendPacket import SerialPacketSender
+from edison.helpers.data_communication import DataPacketBuilder
+from edison.helpers.packet_communication import PacketCommuncation
 from edison._lib.device_location import DeviceLocationReader
 from edison._lib.get_video import GetWebcam
 
@@ -20,7 +20,8 @@ class CarController:
         load_dotenv()
         self.car = self._initialize_car()
         self.builder = DataPacketBuilder()
-        self.sender = self._initialize_serial_sender()
+        self.sender = self._initialize_serial_communicatior()
+    
         self._lock = threading.Lock()
         self.device_location = DeviceLocationReader()
 
@@ -30,11 +31,15 @@ class CarController:
         # Start the logcat reader in a separate thread
         self.location_thread = threading.Thread(target=self.device_location.read_logcat, daemon=True)
         self.location_thread.start()  # Run in the background
+        
         while True:
             if self.device_location.location != (None, None): 
                 break
             print("Make sure to connect usb, Waiting for the signal..")
             time.sleep(1)
+
+        self.arduino_code_reader = threading.Thread(target=self.sender.init_recieving_packet_process, daemon=True)
+        self.arduino_code_reader.start()
 
     def _initialize_car(self) -> Car:
         """Initialize and return a Car instance with configuration from environment variables."""
@@ -45,7 +50,7 @@ class CarController:
 
         return Car(
             car_states=car_states,
-            MIN_SPEED=int(os.getenv("CAR_MIN_SPEED", 1)),
+            MIN_SPEED=int(os.getenv("CAR_MIN_SPEED", 100)),
             MAX_SPEED=int(os.getenv("CAR_MAX_SPEED", 200)),
             ACCELERATION_DELAY=float(os.getenv("ACCELERATION_DELAY", 0.1)),
             DECELERATION_DELAY=float(os.getenv("DECELERATION_DELAY", 0.1)),
@@ -56,14 +61,14 @@ class CarController:
             FRONT_ANGLE=int(os.getenv("FRONT_ANGLE", 90))
         )
 
-    def _initialize_serial_sender(self) -> SerialPacketSender:
+    def _initialize_serial_communicatior(self) -> PacketCommuncation :
         """Initialize and return a SerialPacketSender instance with configuration from environment variables."""
-        print(os.getenv("ARDUINO_SERIAL_PORT", "COM12"))
-        return SerialPacketSender(
-            port=os.getenv("ARDUINO_SERIAL_PORT", "COM12"),
+        print(os.getenv("SERIAL_PORT", "COM12"))
+        return PacketCommuncation(
+            port=os.getenv("SERIAL_PORT", "COM12"),
             baud_rate=int(os.getenv("BAUD_RATE", 9600))
         )
-
+    
     def update_car_state(self) -> None:
         """Update the car's state and send the corresponding data packet."""
         with self._lock:
