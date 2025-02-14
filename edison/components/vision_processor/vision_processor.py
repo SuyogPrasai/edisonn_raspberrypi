@@ -3,179 +3,153 @@ import numpy as np
 import torch
 from collections import deque
 
-class VisionProcessor:
+class RoadBoundaryDetector:
     def __init__(self):
-        # YOLOv5 Model Setup
+        """
+        Optional: If you still want YOLO-based obstacle detection, 
+        you can initialize the model here. 
+        Otherwise, omit this part.
+        """
         self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
-        self.model.classes = [0, 1, 2, 3, 5, 7]  # Person, vehicle classes
-        self.obstacles = []
+        # Example: detect only person, car, etc.
+        self.model.classes = [0, 1, 2, 3, 5, 7]
         
-        # Lane Detection Parameters
-        self.lane_history = deque(maxlen=5)  # Smoothing lane detection
-        self.roi_vertices = np.array([[(0, 720), (1280//2-150, 450), 
-                                     (1280//2+150, 450), (1280, 720)]], dtype=np.int32)
-        
-        # Camera Calibration (Example values - should calibrate for your camera)
-        self.mtx = np.array([[1.15777930e+03, 0.00000000e+00, 6.67111054e+02],
-                            [0.00000000e+00, 1.15282291e+03, 3.86128937e+02],
-                            [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+        # Camera calibration (if available)
+        self.mtx = np.array([
+            [1157.7793, 0.0,       667.111054],
+            [0.0,       1152.82291, 386.128937],
+            [0.0,       0.0,         1.0]
+        ])
         self.dist = np.array([-0.24688807, -0.02373117, -0.00109837, 0.00035108, -0.00259172])
+        
+        self.obstacles = []
 
     def process_frame(self, frame):
-        # Undistort frame
-        frame = cv2.undistort(frame, self.mtx, self.dist, None, self.mtx)
+        """
+        Main pipeline:
+          1) Undistort (optional if you have calibration).
+          2) Detect obstacles with YOLOv5 (optional).
+          3) Detect road boundaries.
+          4) Overlay results and return.
+        """
+        # 1. Undistort
+        frame_undistorted = cv2.undistort(frame, self.mtx, self.dist, None, self.mtx)
         
-        # Process obstacles
-        obstacle_frame = self._detect_obstacles(frame)
+        # 2. Detect obstacles (optional)
+        obstacle_frame = self._detect_obstacles(frame_undistorted)
         
-        # Process lanes
-        lane_frame = self._detect_lanes(frame)
+        # 3. Road boundary detection
+        boundary_frame = self._detect_road_boundaries(frame_undistorted)
         
-        # Combine results
-        combined = cv2.addWeighted(obstacle_frame, 0.6, lane_frame, 0.4, 0)
+        # 4. Combine
+        combined = cv2.addWeighted(obstacle_frame, 0.7, boundary_frame, 0.3, 0)
         
-        # Add info overlay
+        # 5. Overlay text (distance, etc.)
         combined = self._add_overlay(combined)
         
         return combined, self.obstacles
 
     def _detect_obstacles(self, frame):
+        """
+        YOLOv5 detection. Renders bounding boxes on the frame.
+        """
         results = self.model(frame)
         self.obstacles = []
         
         for det in results.xyxy[0]:
-            x1, y1, x2, y2, conf, cls = det.cpu().numpy()
+            x1, y1, x2, y2, conf, cls_id = det.cpu().numpy()
             self.obstacles.append({
-                'type': self.model.names[int(cls)],
+                'type': self.model.names[int(cls_id)],
                 'bbox': (int(x1), int(y1), int(x2), int(y2)),
                 'confidence': float(conf),
-                'distance': self._estimate_distance(y2)
+                'distance': self._estimate_distance(y2, frame.shape[0])
             })
-            
-        return results.render()[0]
+        
+        # Render bounding boxes
+        rendered = results.render()[0]
+        return rendered
 
-    def _estimate_distance(self, y2):
-        # Simple perspective-based distance estimation
-        return 0.1 * (720 - y2) ** 1.5  # Empirical formula (calibrate for your setup)
+    def _estimate_distance(self, y2, frame_height):
+        """
+        Dummy perspective-based distance estimation.
+        Adjust or calibrate for your setup.
+        """
+        return 0.1 * (frame_height - y2) ** 1.5
 
-    def _detect_lanes(self, frame):
-        # Convert to grayscale and blur
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    def _detect_road_boundaries(self, frame):
+        """
+        Attempt to find the largest "road-like" region by color,
+        then approximate the boundary with lines.
+        """
+        # 1. Convert to HSV (tune these thresholds to match your road color!)
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
-        # Edge detection
-        edges = cv2.Canny(blur, 50, 150)
+        # Example: typical asphalt might appear in a certain gray/brown range
+        # You MUST tune these for your specific lighting/road color:
+        lower_road = np.array([0, 0, 50])    # dummy
+        upper_road = np.array([180, 60, 200]) # dummy
         
-        # ROI mask
-        mask = np.zeros_like(edges)
-        cv2.fillPoly(mask, self.roi_vertices, 255)
-        masked_edges = cv2.bitwise_and(edges, mask)
+        mask = cv2.inRange(hsv, lower_road, upper_road)
         
-        # Hough Transform
-        lines = cv2.HoughLinesP(masked_edges, 1, np.pi/180, 50, 
-                               minLineLength=50, maxLineGap=30)
+        # 2. Morphological operations to clean up noise
+        kernel = np.ones((5,5), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
         
-        # Lane processing
-        lane_img = np.zeros_like(frame)
-        if lines is not None:
-            left_lines, right_lines = self._separate_lines(lines)
-            
-            # Average and extrapolate lines
-            left_lane = self._average_lines(left_lines)
-            right_lane = self._average_lines(right_lines)
-            
-            # Add to history
-            self.lane_history.append((left_lane, right_lane))
-            
-            # Draw lanes
-            self._draw_lanes(lane_img)
-            
-        return lane_img
-
-    def _separate_lines(self, lines):
-        left = []
-        right = []
+        # 3. Find contours; pick the largest
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            # No road detected
+            return frame
         
-        for line in lines:
-            x1, y1, x2, y2 = line[0]
-            slope = (y2 - y1) / (x2 - x1 + 1e-5)
-            
-            if abs(slope) < 0.5:  # Horizontal lines
-                continue
-                
-            if slope < 0:
-                left.append((slope, line[0]))
-            else:
-                right.append((slope, line[0]))
-                
-        return left, right
-
-    def _average_lines(self, lines):
-        if not lines:
-            return None
-            
-        slopes = [slope for slope, _ in lines]
-        lines = [line for _, line in lines]
+        largest_contour = max(contours, key=cv2.contourArea)
         
-        avg_slope = np.mean(slopes)
-        avg_line = np.mean(lines, axis=0)
+        # 4. Approximate the boundary polygon
+        epsilon = 0.01 * cv2.arcLength(largest_contour, True)
+        approx_poly = cv2.approxPolyDP(largest_contour, epsilon, True)
         
-        # Extrapolate line to bottom and middle of ROI
-        y1 = self.roi_vertices[0][1][1]  # Bottom of ROI
-        y2 = self.roi_vertices[0][0][1]  # Top of ROI
+        # 5. Draw the polygon or edges onto a blank image
+        boundary_img = np.zeros_like(frame)
+        cv2.drawContours(boundary_img, [approx_poly], -1, (0, 0, 255), 3)
         
-        x1 = int(avg_line[0] + (y1 - avg_line[1]) / avg_slope)
-        x2 = int(avg_line[0] + (y2 - avg_line[1]) / avg_slope)
+        # Optional: if you want left/right lines, you could do more analysis
+        # on the polygon’s points (e.g., find the topmost, bottommost, leftmost, etc.)
+        # and draw lines. For now, we just outline the entire region.
         
-        return (x1, y1, x2, y2)
-
-    def _draw_lanes(self, img):
-        # Use historical average
-        lanes = list(self.lane_history)
-        left = [l[0] for l in lanes if l[0] is not None]
-        right = [l[1] for l in lanes if l[1] is not None]
-        
-        if left:
-            avg_left = np.mean(left, axis=0).astype(int)
-            cv2.line(img, (avg_left[0], avg_left[1]), 
-                    (avg_left[2], avg_left[3]), (0,255,0), 10)
-            
-        if right:
-            avg_right = np.mean(right, axis=0).astype(int)
-            cv2.line(img, (avg_right[0], avg_right[1]), 
-                    (avg_right[2], avg_right[3]), (0,255,0), 10)
+        return boundary_img
 
     def _add_overlay(self, frame):
-        # Lane information
-        if self.lane_history:
-            left, right = self.lane_history[-1]
-            if left and right:
-                center = (left[0] + right[0]) // 2
-                cv2.line(frame, (center, 720), (640, 720), (0,0,255), 5)
-        
-        # Obstacle info
+        """
+        Overlay obstacle distance info, etc.
+        """
         for obstacle in self.obstacles:
             x1, y1, x2, y2 = obstacle['bbox']
-            cv2.putText(frame, f"{obstacle['type']} {obstacle['distance']:.1f}m",
-                       (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255), 2)
+            dist_str = f"{obstacle['distance']:.1f}m"
+            label = f"{obstacle['type']} {dist_str}"
+            cv2.putText(frame, label, (x1, max(0, y1 - 10)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
         
         return frame
 
-# Usage Example
+
+# ------------------- Usage Example ------------------- #
 if __name__ == "__main__":
-    vp = VisionProcessor()
-    cap = cv2.VideoCapture(0)
+    detector = RoadBoundaryDetector()
+    
+    # Replace with your video source or image
+    cap = cv2.VideoCapture(2)
     
     while True:
         ret, frame = cap.read()
         if not ret:
             break
-            
-        processed_frame, obstacles = vp.process_frame(frame)
         
-        cv2.imshow('Output', processed_frame)
+        processed_frame, obstacles = detector.process_frame(frame)
+        
+        cv2.imshow("Road Boundary Detection", processed_frame)
+        
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-            
+    
     cap.release()
     cv2.destroyAllWindows()
