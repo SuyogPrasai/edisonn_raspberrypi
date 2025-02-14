@@ -24,6 +24,17 @@ class VisionProcessor:
         
         self.obstacles = []
 
+    def capture_frame(self):
+        """
+        Captures a single frame from the video source.
+        Returns the captured frame if successful, otherwise None.
+        """
+        ret, frame = self.cap.read()
+        if not ret:
+            print("Failed to capture frame")
+            return None
+        return frame
+    
     def process_frame(self, frame):
         """
         Main pipeline:
