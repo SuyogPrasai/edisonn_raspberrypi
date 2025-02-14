@@ -14,7 +14,7 @@ class VisionProcessor:
         you can initialize the model here. 
         Otherwise, omit this part.
         """
-        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
         # Example: detect only person, car, etc.
         self.model.classes = [0, 1, 2, 3, 5, 7]
         
