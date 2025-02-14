@@ -7,21 +7,20 @@ import os
 
 class VisionProcessor:
     def __init__(self, camera_index=0):
-        load_dotenv()  # Load environment variables from .env file
+        load_dotenv()
 
-        """
-        Optional: If you still want YOLO-based obstacle detection, 
-        you can initialize the model here. 
-        Otherwise, omit this part.
-        """
+        # Initialize YOLOv5 model
         self.model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
-        # Example: detect only person, car, etc.
         self.model.classes = [0, 1, 2, 3, 5, 7]
         
-        # self.cap = cv2.VideoCapture(os.getenv("VIDEO_PORT", "/dev/video0"))  # Initialize camera
-        self.cap = cv2.VideoCapture(0)  # Initialize camera
+        # Camera initialization with environment variable support
+        video_source = os.getenv("VIDEO_PORT", camera_index)
+        if isinstance(video_source, str) and video_source.startswith("/dev"):
+            self.cap = cv2.VideoCapture(video_source)
+        else:
+            self.cap = cv2.VideoCapture(int(video_source))
 
-        # Camera calibration (if available)
+        # Camera calibration parameters
         self.mtx = np.array([
             [1157.7793, 0.0,       667.111054],
             [0.0,       1152.82291, 386.128937],
@@ -31,16 +30,10 @@ class VisionProcessor:
         
         self.obstacles = []
 
+
     def capture_frame(self):
-        """
-        Captures a single frame from the video source.
-        Returns the captured frame if successful, otherwise None.
-        """
         ret, frame = self.cap.read()
-        if not ret:
-            print("Failed to capture frame")
-            return None
-        return frame
+        return frame if ret else None
     
     def process_frame(self, frame):
         """
