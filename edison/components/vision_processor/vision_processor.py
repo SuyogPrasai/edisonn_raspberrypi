@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from collections import deque
 
-class RoadBoundaryDetector:
+class VisionProcessor:
     def __init__(self):
         """
         Optional: If you still want YOLO-based obstacle detection, 
