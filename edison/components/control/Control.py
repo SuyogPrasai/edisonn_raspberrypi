@@ -63,9 +63,9 @@ class CarController:
 
     def _initialize_serial_communicatior(self) -> PacketCommuncation :
         """Initialize and return a SerialPacketSender instance with configuration from environment variables."""
-        print(os.getenv("SERIAL_PORT", "COM12"))
+        print(os.getenv("SERIAL_PORT", "/dev/ttyACM1"))
         return PacketCommuncation(
-            port=os.getenv("SERIAL_PORT", "COM12"),
+            port=os.getenv("SERIAL_PORT", "/dev/ttyACM1"),
             baud_rate=int(os.getenv("BAUD_RATE", 9600))
         )
     
