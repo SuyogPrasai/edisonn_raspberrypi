@@ -4,6 +4,8 @@ from edison.components.obstacle_avoidance.ObstacleAvoider import ObstacleAvoidan
 from edison.components.control.Control import EdisonCar
 from edison._lib.point_navigator import PointNavigator
 from edison.components.streaming_server.streamer import StreamManager
+import threading
+
 
 class MainController:
     def __init__(self):
@@ -12,6 +14,15 @@ class MainController:
         self.vision = VisionProcessor()
         self.obstacle_avoid = ObstacleAvoidance()
         self.traverser = Traverser(self.car, self.point_navigator)
+
+        self.streamer = StreamManager()
+        self.stream_thread = threading.Thread(
+            target=self.streamer.app.run,
+            kwargs={'host': '0.0.0.0', 'port': 5000, 'threaded': True},
+            daemon=True
+        )
+        self.stream_thread.start()
+
         
     def run_loop(self):
         while True:
@@ -38,3 +49,5 @@ class MainController:
             # Update navigation
             if self.traverser.reached_waypoint():
                 self.traverser.next_waypoint()
+
+            self.streamer._add_to_stream(frame)

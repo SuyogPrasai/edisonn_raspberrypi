@@ -29,7 +29,7 @@ class Traverser:
         self.lane_history.append((lane_center, lane_curvature))
 
     def calculate_steering(self):
-        base_angle = self.get_angle()
+        base_angle = self.car._car_direction()
         lane_adjusted = self._adjust_for_curvature(base_angle)
         return self._limit_steering(lane_adjusted)
 

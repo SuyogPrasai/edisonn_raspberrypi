@@ -104,6 +104,11 @@ class CarController:
         with self._lock:
             return (self.device_location.location, self.device_location.direction, self.device_location.general_direction)
 
+    def _car_direction(self) -> int:
+        """Get the current location of the car"""
+        _ , direction , _ = self._get_location()
+        return direction
+
     def get_current_state(self) -> Dict[str, Any]:
         """Get the current state of the car."""
         with self._lock:
