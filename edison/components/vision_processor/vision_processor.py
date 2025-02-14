@@ -2,9 +2,13 @@ import cv2
 import numpy as np
 import torch
 from collections import deque
+from dotenv import load_dotenv
+import os
 
 class VisionProcessor:
-    def __init__(self):
+    def __init__(self, camera_index=0):
+        load_dotenv()  # Load environment variables from .env file
+
         """
         Optional: If you still want YOLO-based obstacle detection, 
         you can initialize the model here. 
@@ -14,6 +18,8 @@ class VisionProcessor:
         # Example: detect only person, car, etc.
         self.model.classes = [0, 1, 2, 3, 5, 7]
         
+        self.cap = cv2.VideoCapture(os.getenv("VIDEO_PORT", "/dev/video0"))  # Initialize camera
+
         # Camera calibration (if available)
         self.mtx = np.array([
             [1157.7793, 0.0,       667.111054],
