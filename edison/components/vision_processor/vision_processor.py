@@ -18,7 +18,8 @@ class VisionProcessor:
         # Example: detect only person, car, etc.
         self.model.classes = [0, 1, 2, 3, 5, 7]
         
-        self.cap = cv2.VideoCapture(os.getenv("VIDEO_PORT", "/dev/video0"))  # Initialize camera
+        # self.cap = cv2.VideoCapture(os.getenv("VIDEO_PORT", "/dev/video0"))  # Initialize camera
+        self.cap = cv2.VideoCapture(0)  # Initialize camera
 
         # Camera calibration (if available)
         self.mtx = np.array([
