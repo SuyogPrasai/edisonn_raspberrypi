@@ -70,7 +70,7 @@ class DeviceLocationReader:
         if match := self.location_pattern.search(line):
             latitude, longitude, direction, general_direction = match.groups()
             self.location = (float(latitude), float(longitude))
-            self.direction = int(direction)
+            self.direction = int(direction) + 90
             self.general_direction = general_direction.strip()
 
 
