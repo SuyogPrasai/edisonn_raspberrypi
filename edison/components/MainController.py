@@ -16,13 +16,12 @@ class MainController:
         # self.traverser = Traverser(self.car, self.point_navigator)
 
         self.streamer = StreamManager()
-        self.streamer.start_stream()
 
         
     def run_loop(self):
-        pass
-        # while True:
-        #     # Get sensor data
+        while True:
+            frame = self.vision.capture_frame()
+            self.streamer.update_frame(frame)
             
             
             # Process vision data

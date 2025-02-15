@@ -5,7 +5,6 @@ import threading
 import time
 from queue import Queue
 from functools import wraps
-from edison.components.vision_processor.vision_processor import VisionProcessor
 
 class StreamManager:
     def __init__(self, video_source="/dev/video0"):
@@ -41,19 +40,36 @@ class StreamManager:
         while self._running:
             ret, frame = cap.read()
             if ret:
-                with self.lock:
-                    while not self.frame_queue.empty():
-                        self.frame_queue.get()
-                    self.frame_queue.put(frame)
+                self.update_frame(frame)
         cap.release()
 
-    def start_stream(self, host='0.0.0.0', port=5000):
+    def start_stream(self, host='0.0.0.0', port=5000, use_internal_capture=True):
         self._running = True
-        threading.Thread(target=self._capture_frames, daemon=True).start()
-        self.app.run(host=host, port=port, threaded=False)
+        if use_internal_capture:
+            threading.Thread(target=self._capture_frames, daemon=True).start()
+        # Start Flask in a daemon thread
+        flask_thread = threading.Thread(target=self.app.run, 
+                                     kwargs={'host': host, 'port': port, 'threaded': False},
+                                     daemon=True)
+        flask_thread.start()
 
     def stop(self):
         self._running = False
+
+    def update_frame(self, frame):
+        with self.lock:
+            # Keep only the latest frame
+            while not self.frame_queue.empty():
+                self.frame_queue.get()
+            self.frame_queue.put(frame)
+
+    def frame_decorator(self, func):
+        @wraps(func)
+        def wrapper(frame):
+            processed_frame = func(frame)
+            self.update_frame(processed_frame)
+            return processed_frame
+        return wrapper
 
 if __name__ == "__main__":
     streamer = StreamManager()
