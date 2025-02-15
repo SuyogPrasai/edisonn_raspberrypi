@@ -11,7 +11,7 @@ class Traverser:
         self.car = car
         self.point_navigator = point_navigator
         self.counter = 0
-        self.next_point = self.point_navigator.routes[self.counter]
+        # self.next_point = self.point_navigator.routes[self.counter]
         
         # Lane keeping parameters
         self.lane_center = 0.0  # Normalized lane center position (-1 to 1)
