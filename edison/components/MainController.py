@@ -28,7 +28,7 @@ class MainController:
         while True:
             # Get sensor data
             frame = self.vision.capture_frame()
-            gps_data = self.car.get_location()
+            gps_data = self.car._get_location()
             
             # Process vision data
             # obstacles = self.vision.detect_obstacles(frame)
