@@ -1,18 +1,17 @@
 import cv2
 
-class VisionProcessor:
-    def capture_frame(self, video_source=0):
-        cap = cv2.VideoCapture(video_source)  # Open the specified video source
+class VisualProcessor:
+    def get_frame(self):
+        cap = cv2.VideoCapture(0)  # Open the default camera
         if not cap.isOpened():
-            print(f"Error: Could not open video source {video_source}.")
+            print("Error: Could not open camera.")
             return None
         
         ret, frame = cap.read()  # Capture a frame
-        cap.release()  # Release the video source
+        cap.release()  # Release the camera
         
         if not ret:
             print("Error: Could not read frame.")
             return None
         
         return frame
-

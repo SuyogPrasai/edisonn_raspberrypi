@@ -1,4 +1,4 @@
-from edison.components.road_traverser import Traverser
+from edison.components.road_traverser.Traverser import Traverser
 from edison.components.vision_processor.vision_processor import VisionProcessor
 from edison.components.obstacle_avoidance.ObstacleAvoider import ObstacleAvoidance
 from edison.components.control.Control import EdisonCar
@@ -10,10 +10,10 @@ import threading
 class MainController:
     def __init__(self):
         self.car = EdisonCar()
-        # self.point_navigator = PointNavigator(self.car)
+        self.point_navigator = PointNavigator(self.car)
         self.vision = VisionProcessor()
         # self.obstacle_avoid = ObstacleAvoidance()
-        # self.traverser = Traverser(self.car, self.point_navigator)
+        self.traverser = Traverser(self.car, self.point_navigator)
 
         self.streamer = StreamManager()
         self.streamer.start_stream()
@@ -21,9 +21,11 @@ class MainController:
         
     def run_loop(self):
         while True:
-            frame = self.vision.capture_frame()
-            self.streamer.update_frame(frame)
+            # frame = self.vision.capture_frame()
+            # self.streamer.update_frame(frame)
             
+            self.traverser.turn_car(30)
+
             
             # Process vision data
             # obstacles = self.vision.detect_obstacles(frame)
