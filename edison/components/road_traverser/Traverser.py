@@ -90,6 +90,23 @@ class Traverser:
                       -self.car.max_steering_angle, 
                       self.car.max_steering_angle)
 
+    def turn_car(self, direction: int) -> None:
+        car_direction = self.car._car_direction()
+        direction_change = direction - car_direction
+        turning_speed = 50
+        while True:
+            if direction_change > 0: 
+                self.car.turn_right()
+                self.car.set_speed(turning_speed)
+            elif direction_change < 0:
+                self.car.turn_right()
+                self.car.set_speed(turning_speed)
+            else:
+                self.car.turn_front()
+                break
+        time.sleep(3)
+        self.car.set_speed(0)
+
 class PIDController:
     def __init__(self, Kp, Ki, Kd):
         self.Kp = Kp

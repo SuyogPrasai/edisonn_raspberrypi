@@ -154,6 +154,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+yolov5*
+
 # pytype static type analyzer
 .pytype/
 

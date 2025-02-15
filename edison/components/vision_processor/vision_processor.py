@@ -1,7 +1,6 @@
 import cv2
 
 class VisionProcessor:
-
     def capture_frame(self):
         cap = cv2.VideoCapture(0)  # Open the default camera
         if not cap.isOpened():
@@ -16,3 +15,5 @@ class VisionProcessor:
             return None
         
         return frame
+
+
