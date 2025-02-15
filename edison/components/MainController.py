@@ -16,19 +16,14 @@ class MainController:
         # self.traverser = Traverser(self.car, self.point_navigator)
 
         self.streamer = StreamManager()
-        self.stream_thread = threading.Thread(
-            target=self.streamer.app.run,
-            kwargs={'host': '0.0.0.0', 'port': 5000, 'threaded': True},
-            daemon=True
-        )
-        self.stream_thread.start()
+        self.streamer.start_stream()
 
         
     def run_loop(self):
-        while True:
-            # Get sensor data
-            frame = self.vision.capture_frame()
-            gps_data = self.car._get_location()
+        pass
+        # while True:
+        #     # Get sensor data
+            
             
             # Process vision data
             # obstacles = self.vision.detect_obstacles(frame)
@@ -49,6 +44,3 @@ class MainController:
             # Update navigation
             # if self.traverser.reached_waypoint():
             #     self.traverser.next_waypoint()
-            self.vision.capture()
-            break
-            self.streamer._add_to_stream(frame)
