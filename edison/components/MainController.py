@@ -49,5 +49,6 @@ class MainController:
             # Update navigation
             # if self.traverser.reached_waypoint():
             #     self.traverser.next_waypoint()
-
+            self.vision.capture()
+            break
             self.streamer._add_to_stream(frame)

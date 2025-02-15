@@ -15,3 +15,14 @@ class VisionProcessor:
             return None
         
         return frame
+    
+
+    def capture(self):     
+        cap = cv2.VideoCapture(0)  # Or "/dev/video0"
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite("test.jpg", frame)
+        else:
+            print("Failed to capture frame")
+        cap.release()
+
