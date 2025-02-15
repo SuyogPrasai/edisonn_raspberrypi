@@ -16,6 +16,7 @@ class MainController:
         # self.traverser = Traverser(self.car, self.point_navigator)
 
         self.streamer = StreamManager()
+        self.streamer.start_stream()
 
         
     def run_loop(self):
