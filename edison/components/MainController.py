@@ -1,5 +1,5 @@
 from edison.components.road_traverser.Traverser import Traverser
-from edison.components.vision_processor.vision_processor import VisionProcessor
+from edison.components.vision_processor.vision_processor import VisualProcessor
 from edison.components.obstacle_avoidance.ObstacleAvoider import ObstacleAvoidance
 from edison.components.control.Control import EdisonCar
 from edison._lib.point_navigator import PointNavigator
@@ -11,7 +11,7 @@ class MainController:
     def __init__(self):
         self.car = EdisonCar()
         self.point_navigator = PointNavigator(self.car)
-        self.vision = VisionProcessor()
+        self.vision = VisualProcessor()
         # self.obstacle_avoid = ObstacleAvoidance()
         self.traverser = Traverser(self.car, self.point_navigator)
 
