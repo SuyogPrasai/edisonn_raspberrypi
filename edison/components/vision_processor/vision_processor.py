@@ -1,6 +1,6 @@
 import cv2
 
-class VisualProcessor:
+class VisionProcessor:
     def get_frame(self, video_source="/dev/video0"):
         cap = cv2.VideoCapture(video_source)  # Open the specified video source
         if not cap.isOpened():
