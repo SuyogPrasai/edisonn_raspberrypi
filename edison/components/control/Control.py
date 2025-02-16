@@ -4,6 +4,7 @@ import threading
 
 from typing import Dict, Any, Tuple
 from dotenv import load_dotenv
+from multiprocessing import Process, Manager
 
 from edison.models.Car import Car
 from edison.helpers.data_communication import DataPacketBuilder
@@ -21,25 +22,26 @@ class CarController:
         self.car = self._initialize_car()
         self.builder = DataPacketBuilder()
         self.sender = self._initialize_serial_communicatior()
+
     
-        self._lock = threading.Lock()
-        self.device_location = DeviceLocationReader()
+        shared_location_state = Manager().dict()
+        self.device_location = DeviceLocationReader(location_shared_state=shared_location_state)
 
         self.web_cam = GetWebcam()
         self.web_cam.get_webcam()
         
         # Start the logcat reader in a separate thread
-        self.location_thread = threading.Thread(target=self.device_location.read_logcat, daemon=True)
-        self.location_thread.start()  # Run in the background
+        location_reading_process = Process(target=self.device_location._update_attributes_from_line())
+        location_reading_process.join()
         
         while True:
-            if self.device_location.location != (None, None): 
+            if self.shared_location_state['location'] != (None, None): 
                 break
             print("Make sure to connect usb, Waiting for the signal..")
             time.sleep(1)
 
-        self.arduino_code_reader = threading.Thread(target=self.sender.init_recieving_packet_process, daemon=True)
-        self.arduino_code_reader.start()
+        # self.arduino_code_reader = threading.Thread(target=self.sender.init_recieving_packet_process, daemon=True)
+        # self.arduino_code_reader.start()
 
     def _initialize_car(self) -> Car:
         """Initialize and return a Car instance with configuration from environment variables."""

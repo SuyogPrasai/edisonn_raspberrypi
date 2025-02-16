@@ -1,6 +1,7 @@
 import subprocess
 import re
 from typing import Optional, Tuple
+from multiprocessing import Manager
 
 class DeviceLocationReader:
     """
@@ -13,7 +14,7 @@ class DeviceLocationReader:
         general_direction (Optional[str]): The general direction description (e.g., "North").
     """
 
-    def __init__(self) -> None:
+    def __init__(self, location_shared_state) -> None:
         """
         Initializes the DeviceLocationReader with a regex pattern and default attribute values.
         """
@@ -21,10 +22,8 @@ class DeviceLocationReader:
         self.location_pattern = re.compile(
             r"Location:\s*([\d\.\-]+),\s*([\d\.\-]+)\s*\|\s*Direction:\s*(\d+)[^\d]*\(([^)]+)\)"
         )
-        self.location: Optional[Tuple[float, float]] = (None, None)
-        self.direction: Optional[int] = None
-        self.general_direction: Optional[str] = None
 
+        self.location_shared_state = location_shared_state
         self.reader_running = False
 
     def read_logcat(self) -> None:
@@ -69,22 +68,6 @@ class DeviceLocationReader:
         """
         if match := self.location_pattern.search(line):
             latitude, longitude, direction, general_direction = match.groups()
-            self.location = (float(latitude), float(longitude))
-            self.direction = int(direction) + 90
-            self.general_direction = general_direction.strip()
-
-
-def main() -> None:
-    """
-    The main function to instantiate the DeviceLocationReader and start reading logcat output.
-    """
-    reader = DeviceLocationReader()
-    reader.read_logcat()
-
-    try:
-        while True:
-            reader.print_attributes()
-    except KeyboardInterrupt:
-        print("\nExiting...")
-if __name__ == "__main__":
-    main()
+            self.location_shared_state['location'] = (float(latitude), float(longitude))
+            self.location_shared_state['direction'] = int(direction) + 90
+            self.location_shared_state['general_direction'] = general_direction.strip()
